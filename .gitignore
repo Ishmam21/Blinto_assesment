@@ -16,9 +16,8 @@ __pycache__/
 .venv/
 venv/
 
-# Node (including future frontend/Next.js app)
+# Node
 node_modules/
-.next/
 out/
 dist/
 
