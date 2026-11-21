@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: doomsday
+      POSTGRES_USER: doomsday
+      POSTGRES_PASSWORD: doomsday_local
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./BE/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "doomsday", "-d", "doomsday"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: BE/Dockerfile
+    env_file:
+      - path: BE/.env
+        required: false
+    environment:
+      DATABASE_URL: "${DATABASE_URL:-postgresql://doomsday:doomsday_local@db:5432/doomsday}"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/openapi.json', timeout=2).close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:5173:80"
+
+volumes:
+  postgres_data:

@@ -9,6 +9,7 @@
 # Local README files
 [Rr][Ee][Aa][Dd][Mm][Ee]
 [Rr][Ee][Aa][Dd][Mm][Ee].*
+!/README.md
 
 # Python
 __pycache__/

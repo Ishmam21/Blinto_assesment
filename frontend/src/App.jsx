@@ -153,8 +153,8 @@ function MovieLookup({ onSelect, onAutofill }) {
 
   return (
     <details className="movie-lookup">
-      <summary>Search TMDB</summary>
-      <div className="stack compact">
+      <summary>Search TMDB <small>Optional</small></summary>
+      <div className="lookup-body">
         <div className="lookup-query">
           <input aria-label="Search TMDB by title" placeholder="Search by title" maxLength={200}
             value={query} disabled={Boolean(pending)}
@@ -165,7 +165,7 @@ function MovieLookup({ onSelect, onAutofill }) {
                 search();
               }
             }} />
-          <button type="button" className="secondary" onClick={search} disabled={!query.trim() || Boolean(pending)}>
+          <button type="button" className="secondary lookup-search" onClick={search} disabled={!query.trim() || Boolean(pending)}>
             {pending === "search" ? "Searching…" : "Search"}
           </button>
         </div>
@@ -189,11 +189,15 @@ function MovieLookup({ onSelect, onAutofill }) {
           </ul>
         )}
         {selection && (
-          <div className="stack compact">
-            <p className="hint">Selected: {selection.title}</p>
-            <button type="button" className="secondary" onClick={autofill} disabled={Boolean(pending)}>
-              {pending === "details" ? "Loading movie info…" : "Autofill movie info"}
-            </button>
+          <div className="lookup-selection">
+            <MoviePoster movie={selection} />
+            <div className="lookup-selection-info">
+              <strong>{selection.title}</strong>
+              <p className="hint">Fill in the release date, year, and runtime.</p>
+              <button type="button" className="primary lookup-autofill" onClick={autofill} disabled={Boolean(pending)}>
+                {pending === "details" ? "Loading movie info…" : "Autofill movie info"}
+              </button>
+            </div>
           </div>
         )}
         {notice && <p className="hint" role="status">{notice}</p>}
@@ -448,19 +452,22 @@ function RewatchView({ collection, pending, onToggle, target }) {
           <ErrorMessage message={!refreshing ? current?.error : ""} retry={() => setAttempt((value) => value + 1)} />
           {plan?.movies.length === 0 && <p className="empty">This movie has no prerequisites.</p>}
           {plan?.movies.length > 0 && (
-            <ol className="rows ordered">
-              {plan.movies.map((movie, index) => (
-                <li key={movie.id}>
-                  <span className="order-number">{index + 1}</span>
-                  <div className="movie-identity">
-                    <MoviePoster movie={movie} />
-                    <div className="row-title"><strong>{movie.title}</strong><span>{movie.release_year} · {duration(movie.runtime_minutes)}</span></div>
-                  </div>
-                  <Watched movie={movies.find((item) => item.id === movie.id) ?? movie}
-                    busy={pending.has(movie.id)} onToggle={onToggle} />
-                </li>
-              ))}
-            </ol>
+            <>
+              <p className="watch-order-instruction">Watch in the order shown below, starting at 1.</p>
+              <ol className="rows ordered">
+                {plan.movies.map((movie, index) => (
+                  <li key={movie.id}>
+                    <span className="order-number">{index + 1}</span>
+                    <div className="movie-identity">
+                      <MoviePoster movie={movie} />
+                      <div className="row-title"><strong>{movie.title}</strong><span>{movie.release_year} · {duration(movie.runtime_minutes)}</span></div>
+                    </div>
+                    <Watched movie={movies.find((item) => item.id === movie.id) ?? movie}
+                      busy={pending.has(movie.id)} onToggle={onToggle} />
+                  </li>
+                ))}
+              </ol>
+            </>
           )}
         </section>
       )}
@@ -667,6 +674,7 @@ export default function App() {
                 href={item === "Rewatch Plan" ? rewatchHref(target) : `#${viewStyles[item]}`}>{item}</a>
             ))}
           </nav>
+          <a className="api-docs-link" href="/docs">API Docs</a>
         </div>
       </header>
       <main className="shell" data-view={viewStyles[view]}>

@@ -26,7 +26,7 @@ from schemas import (
 app = FastAPI(title="Doomsday Ready API")
 app.include_router(lookup_router)
 
-# SQLAlchemy Core references to the existing tables.
+
 movies = table(
     "movies",
     column("id", Integer),

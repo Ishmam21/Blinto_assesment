@@ -20,8 +20,7 @@ def prerequisite_dfs(target, prerequisites):
     finished = set()
     parent = {}
 
-    # Keep the active path and postorder from the demo. Use explicit frames so
-    # long chains do not depend on Python's recursion limit.
+
     def visit(movie):
         visiting.add(movie)
         path.append(movie)

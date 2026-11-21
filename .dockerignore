@@ -1,0 +1,14 @@
+**
+!BE/
+!BE/*.py
+!BE/requirements.txt
+!BE/Dockerfile
+!frontend/
+!frontend/Dockerfile
+!frontend/nginx.conf
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/index.html
+!frontend/vite.config.js
+!frontend/src/
+!frontend/src/**

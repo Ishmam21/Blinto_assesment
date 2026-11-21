@@ -6,6 +6,13 @@ import httpx
 from fastapi import APIRouter, HTTPException, Path, Query
 from pydantic import BaseModel
 
+DEFAULT_TMDB_READ_TOKEN = (
+    'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2OTE3YjY5NDcxYWNhN2YxODIyODNjODM3OWI2ZTA'
+    '5ZSIsIm5iZiI6MTc5NTI1MDE1MC4xMDQsInN1YiI6IjZiMDE1N2U2YjVjY2ZiNTUzZDU5MmI'
+    '4NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.2tZuc6b5Tw43XOZfrq3s'
+    'zRwyijeHjtgiZeE9fhDBHIk'
+)
+
 router = APIRouter(prefix="/api/movie-lookup", tags=["Movie lookup"])
 
 
@@ -22,9 +29,7 @@ class MovieDetails(BaseModel):
 
 
 def tmdb_get(path, params=None):
-    token = os.getenv("TMDB_READ_TOKEN", "").strip()
-    if not token:
-        raise HTTPException(status_code=503, detail="TMDB lookup is unavailable. TMDB_READ_TOKEN is not configured.")
+    token = os.getenv("TMDB_READ_TOKEN", "").strip() or DEFAULT_TMDB_READ_TOKEN
     try:
         response = httpx.get(
             f"https://api.themoviedb.org/3{path}",
