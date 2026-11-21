@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
+import logoUrl from "./logo.svg";
 
 const views = ["Movies", "Rewatch Plan", "Booking"];
 const copy = {
-  Movies: "Add movies, manage prerequisites, and track what you’ve watched.",
-  "Rewatch Plan": "See what to watch before your target movie.",
-  Booking: "Set up cinema bundles and find the fewest to buy for your group.",
+  Movies: "Build your movie library, link prerequisites, and track what you’ve watched.",
+  "Rewatch Plan": "Pick a movie to see what to watch first and how many minutes you have left.",
+  Booking: "Find the fewest ticket bundles that seat your group exactly.",
 };
 const viewStyles = { Movies: "movies", "Rewatch Plan": "rewatch", Booking: "booking" };
 
@@ -336,11 +337,17 @@ function MoviesView({ collection, pending, onToggle, onSave }) {
       <section className="panel" aria-labelledby="library-heading">
         <div className="panel-heading">
           <h2 id="library-heading">Movie library</h2>
-          {!loading && !error && <span className="muted">{watched} of {movies.length} watched</span>}
+          {!loading && !error && movies.length > 0 && <span className="library-progress">{watched} of {movies.length} watched</span>}
         </div>
         <ErrorMessage message={error} retry={retry} />
         {loading && <p className="empty" role="status">Loading movies…</p>}
-        {!loading && !error && movies.length === 0 && <p className="empty">Your library is empty. Add a movie to get started.</p>}
+        {!loading && !error && movies.length === 0 && (
+          <div className="empty library-empty">
+            <strong>No movies yet</strong>
+            <p>Add your first movie to start building a rewatch plan.</p>
+            <button type="button" className="secondary" onClick={() => formHeading.current?.focus()}>Add your first movie</button>
+          </div>
+        )}
         <ul className="rows library-rows">
           {movies.map((movie) => (
             <li key={movie.id} className={movie.id === editingId ? "selected-row" : ""}>
@@ -362,7 +369,7 @@ function MoviesView({ collection, pending, onToggle, onSave }) {
           ))}
         </ul>
       </section>
-      <section className="panel" aria-labelledby="movie-form-heading">
+      <section className="panel movie-editor" aria-labelledby="movie-form-heading">
         <div className="movie-form-heading">
           <h2 id="movie-form-heading" ref={formHeading} tabIndex={-1}>{editing ? "Edit movie" : "Add movie"}</h2>
           {editing && <p className="hint">{editing.title}</p>}
@@ -667,7 +674,10 @@ export default function App() {
     <>
       <header className="site-header">
         <div className="shell header-content">
-          <div className="brand"><span className="brand-mark" aria-hidden="true" />Doomsday Ready</div>
+          <a className="brand" href="#movies" aria-label="Doomsday Ready home">
+            <img className="brand-mark" src={logoUrl} alt="" width="48" height="48" />
+            <span>Doomsday Ready</span>
+          </a>
           <nav aria-label="Main navigation">
             {views.map((item) => (
               <a key={item} data-view={viewStyles[item]} aria-current={view === item ? "page" : undefined}
