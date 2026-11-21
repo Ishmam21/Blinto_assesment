@@ -1,6 +1,6 @@
 # Doomsday Ready
 
-Doomsday Ready is a React and FastAPI app for planning a movie rewatch and finding the fewest cinema ticket bundles that seat a group exactly. Docker Compose runs PostgreSQL locally. The hosted backend uses Neon.
+Doomsday Ready is a React and FastAPI app for planning a movie rewatch and finding the fewest cinema ticket bundles that seat a group exactly.
 
 - **Live site** · [Doomsday Ready on Vercel](https://blinto-assesment-e6ku321og-personal-1594.vercel.app/)
 - **Hosted API** · [FastAPI on Render](https://blinto-assesment.onrender.com/) · [Swagger UI](https://blinto-assesment.onrender.com/docs)
@@ -27,21 +27,19 @@ The booking algorithm is in [`BE/booking.py`](BE/booking.py).
 
 ## Run with Docker Compose
 
-Use the `main` branch to run the app locally. Its Docker Compose setup starts React, FastAPI, and a local PostgreSQL database. The `hosted` branch serves the frontend on Vercel and the API on Render, with Neon hosting PostgreSQL. The branches differ slightly in routing and database configuration to support those two setups.
-
-With Docker Compose 2.24 or later, run from the repository root:
+On the `main` branch, run this from the repository root with Docker Compose v2:
 
 ```sh
 docker compose up --build
 ```
 
-Open [the app](http://localhost:5173) or [Swagger UI](http://localhost:5173/docs). Compose starts the frontend, FastAPI, and PostgreSQL. The database starts with the tables in [`BE/schema.sql`](BE/schema.sql) and saves data in a Docker volume across restarts. The local app works without a `.env` file.
+Open [the app](http://localhost:5173) or [Swagger UI](http://localhost:5173/docs). Compose starts React, FastAPI, and PostgreSQL. FastAPI connects to the PostgreSQL container over Docker’s internal network. On the first run, PostgreSQL creates its tables from [`BE/schema.sql`](BE/schema.sql). No `.env` file or database account is needed.
 
-The TMDB read token is hardcoded in FastAPI solely so assessment reviewers can run search and autofill locally without creating a TMDB account or configuring a token. For hosted deployments, set `TMDB_READ_TOKEN` in the backend environment to override the bundled token. See [`BE/.env.example`](BE/.env.example). Manual movie entry is available if TMDB is unavailable.
+Run `docker compose down` to stop the app. Movies and cinemas are kept in the Docker volume for the next run.
 
-### Hosted backend
+The TMDB read token is bundled solely so assessment reviewers can try search and autofill locally. To override it in Compose, set `TMDB_READ_TOKEN` in a `.env` file at the repository root. Manual movie entry is available if TMDB is unavailable.
 
-Set `DATABASE_URL` to your Neon connection string in the hosting provider’s backend environment. For a fresh Neon database, apply [`BE/schema.sql`](BE/schema.sql) once before starting the app. If you run Compose with Neon, set `DATABASE_URL` in your shell or a root `.env` file to override the local connection.
+The live links above use the separate `hosted` branch.
 
 ## Data model
 
