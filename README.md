@@ -2,7 +2,7 @@
 
 Doomsday Ready is a React and FastAPI app for planning a movie rewatch and finding the fewest cinema ticket bundles that seat a group exactly.
 
-- **Live site** · [Doomsday Ready on Vercel](https://blinto-assesment-e6ku321og-personal-1594.vercel.app/)
+- **Live site** · [Doomsday Ready on Vercel](https://blinto-assesment-murex.vercel.app/)
 - **Hosted API** · [FastAPI on Render](https://blinto-assesment.onrender.com/) · [Swagger UI](https://blinto-assesment.onrender.com/docs)
 
 ## Algorithms
