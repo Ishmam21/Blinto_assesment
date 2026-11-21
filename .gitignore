@@ -1,0 +1,23 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Neon setup notes (local reference)
+/neon-setup-notes.md
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node (including future frontend/Next.js app)
+node_modules/
+.next/
+out/
+dist/
+
+# Editor / OS
+.DS_Store
+.vscode/
