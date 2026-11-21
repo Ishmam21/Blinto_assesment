@@ -75,7 +75,7 @@ Each prerequisite link means `movie_id` needs `prerequisite_id` first. Cinemas a
 
 ## API Reference
 
-All endpoints below use the `/api` prefix. Replace `:id` with the saved movie or cinema ID.
+All endpoints below use the `/api` prefix. Replace `:id` with the saved movie or cinema ID. Use the ID returned by TMDB search for `:tmdb_id`.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
@@ -83,9 +83,12 @@ All endpoints below use the `/api` prefix. Replace `:id` with the saved movie or
 | `GET` | `/api/movies` | List saved movies. |
 | `PATCH` | `/api/movies/:id` | Update a movie, including its watched status and prerequisites. |
 | `GET` | `/api/movies/:id/rewatch-order` | Get the rewatch order and progress for a target movie (Feature 1). |
+| `POST` | `/api/movies/validate-prerequisites` | Check proposed prerequisite links without saving them. |
 | `POST` | `/api/cinemas` | Create a cinema and save its bundle sizes. |
 | `GET` | `/api/cinemas` | List saved cinemas. |
 | `GET` | `/api/cinemas/:id/booking?groupSize=6` | Get an exact booking quote for the group (Feature 2). |
+| `GET` | `/api/movie-lookup/search?q=Avengers` | Search TMDB for matching movie titles, posters, and IDs. |
+| `GET` | `/api/movie-lookup/:tmdb_id/details` | Get a TMDB movie’s release date, year, and runtime for autofill when available. |
 
 ## Submission
 
