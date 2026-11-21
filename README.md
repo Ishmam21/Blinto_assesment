@@ -2,6 +2,9 @@
 
 Doomsday Ready is a React and FastAPI app for planning a movie rewatch and finding the fewest cinema ticket bundles that seat a group exactly. Docker Compose runs PostgreSQL locally. The hosted backend uses Neon.
 
+- **Live site** · [Doomsday Ready on Vercel](https://blinto-assesment-e6ku321og-personal-1594.vercel.app/)
+- **Hosted API** · [FastAPI on Render](https://blinto-assesment.onrender.com/) · [Swagger UI](https://blinto-assesment.onrender.com/docs)
+
 ## Algorithms
 
 ### Feature 1 — Rewatch order
@@ -23,6 +26,8 @@ For each reachable total, the algorithm also records the bundle size that gave t
 The booking algorithm is in [`BE/booking.py`](BE/booking.py).
 
 ## Run with Docker Compose
+
+Use the `main` branch to run the app locally. Its Docker Compose setup starts React, FastAPI, and a local PostgreSQL database. The `hosted` branch serves the frontend on Vercel and the API on Render, with Neon hosting PostgreSQL. The branches differ slightly in routing and database configuration to support those two setups.
 
 With Docker Compose 2.24 or later, run from the repository root:
 
