@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Boolean, Date, Integer, Text, column, delete, insert, select, table, text, update
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -24,6 +25,16 @@ from schemas import (
 )
 
 app = FastAPI(title="Doomsday Ready API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://blinto-assesment-a66jznpka-personal-1594.vercel.app",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_methods=["GET", "POST", "PATCH"],
+    allow_headers=["Content-Type"],
+)
 app.include_router(lookup_router)
 
 
