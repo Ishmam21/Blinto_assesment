@@ -4,8 +4,20 @@ const views = ["Movies", "Rewatch Plan", "Booking"];
 const copy = {
   Movies: "Add movies, manage prerequisites, and track what you’ve watched.",
   "Rewatch Plan": "See what to watch before your target movie.",
-  Booking: "Find the fewest ticket bundles for your group.",
+  Booking: "Set up cinema bundles and find the fewest to buy for your group.",
 };
+const viewStyles = { Movies: "movies", "Rewatch Plan": "rewatch", Booking: "booking" };
+
+function readRoute() {
+  const hash = window.location.hash;
+  const rewatch = /^#rewatch(?:\/([1-9]\d{0,9}))?$/.exec(hash);
+  if (rewatch) return { view: "Rewatch Plan", target: rewatch[1] ?? "" };
+  return { view: hash === "#booking" ? "Booking" : "Movies", target: "" };
+}
+
+function rewatchHref(movieId) {
+  return movieId ? `#rewatch/${movieId}` : "#rewatch";
+}
 
 async function api(path, options = {}) {
   const response = await fetch(`/api${path}`, {
@@ -298,7 +310,7 @@ function MovieForm({ movie, movies, loading, onSave, onCancel }) {
   );
 }
 
-function MoviesView({ collection, pending, onToggle, onSave, onPlan }) {
+function MoviesView({ collection, pending, onToggle, onSave }) {
   const [editingId, setEditingId] = useState(null);
   const [formKey, setFormKey] = useState(0);
   const formHeading = useRef(null);
@@ -339,8 +351,8 @@ function MoviesView({ collection, pending, onToggle, onSave, onPlan }) {
                 <Watched movie={movie} busy={pending.has(movie.id)} onToggle={onToggle} />
                 <button type="button" className="secondary" onClick={() => selectMovie(movie.id)}
                   aria-label={`Edit ${movie.title}`}>Edit</button>
-                <button type="button" className="secondary plan-button" onClick={() => onPlan(movie.id)}
-                  aria-label={`Plan rewatch for ${movie.title}`}>Plan rewatch</button>
+                <a className="secondary plan-button" href={rewatchHref(movie.id)}
+                  aria-label={`Plan rewatch for ${movie.title}`}>Plan rewatch</a>
               </div>
             </li>
           ))}
@@ -359,7 +371,7 @@ function MoviesView({ collection, pending, onToggle, onSave, onPlan }) {
   );
 }
 
-function RewatchView({ collection, pending, onToggle, target, setTarget }) {
+function RewatchView({ collection, pending, onToggle, target }) {
   const [result, setResult] = useState(null);
   const [attempt, setAttempt] = useState(0);
   const { items: movies, loading, error, retry } = collection;
@@ -382,35 +394,52 @@ function RewatchView({ collection, pending, onToggle, target, setTarget }) {
 
   return (
     <div className="rewatch-layout">
-      <section className="panel" aria-label="Target movie">
+      <section className="panel" aria-labelledby="target-picker-heading">
+        <h2 id="target-picker-heading">Choose a target movie</h2>
         <ErrorMessage message={error} retry={retry} />
-        <label className="target-picker">Choose a target movie
-          <select value={target} onChange={(event) => setTarget(event.target.value)} disabled={loading || !movies.length}>
-            <option value="">{loading ? "Loading movies…" : "Choose a movie"}</option>
-            {movies.map((movie) => <option key={movie.id} value={movie.id}>{movie.title} ({movie.release_year})</option>)}
-          </select>
-        </label>
-        {!loading && !error && !movies.length && <p className="hint">Add a movie in Movies to make a plan.</p>}
-        {targetMovie && (
-          <div className="rewatch-target">
-            <MoviePoster movie={targetMovie} large />
-            <div className="target-details">
-              <h2>{targetMovie.title}</h2>
-              <p className="muted">{targetMovie.release_year} · {duration(targetMovie.runtime_minutes)}</p>
-              {plan && (
-                <div className="target-progress">
-                  <div className="progress-summary" aria-live="polite">
-                    <strong>{plan.watched_count} of {plan.total_prerequisite_count} watched</strong>
-                    <span>Remaining: {duration(plan.unwatched_runtime_minutes)}</span>
+        {loading && <p className="empty" role="status">Loading movies…</p>}
+        {!loading && !error && !movies.length && <p className="empty">Add a movie in Movies to make a plan.</p>}
+        <div className={targetMovie ? "rewatch-overview has-target" : "rewatch-overview"}>
+          {movies.length > 0 && (
+            <ul className="target-options" role="list">
+              {movies.map((movie) => {
+                const isSelected = movie.id === targetMovie?.id;
+                return (
+                  <li key={movie.id}>
+                    <a className="target-option" href={rewatchHref(movie.id)} aria-current={isSelected ? "true" : undefined}>
+                      <MoviePoster movie={movie} />
+                      <span className="row-title">
+                        <strong>{movie.title}</strong>
+                        <span>{movie.release_year} · {duration(movie.runtime_minutes)}</span>
+                      </span>
+                      {isSelected && <span className="target-selected">Selected</span>}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {targetMovie && (
+            <div className="rewatch-target">
+              <MoviePoster movie={targetMovie} large />
+              <div className="target-details">
+                <h2>{targetMovie.title}</h2>
+                <p className="muted">{targetMovie.release_year} · {duration(targetMovie.runtime_minutes)}</p>
+                {plan && (
+                  <div className="target-progress">
+                    <div className="progress-summary" aria-live="polite">
+                      <strong>{plan.watched_count} of {plan.total_prerequisite_count} watched</strong>
+                      <span>Remaining: {duration(plan.unwatched_runtime_minutes)}</span>
+                    </div>
+                    <progress aria-label="Rewatch progress"
+                      value={plan.total_prerequisite_count === 0 ? 1 : plan.watched_count}
+                      max={plan.total_prerequisite_count || 1} />
                   </div>
-                  <progress aria-label="Rewatch progress"
-                    value={plan.total_prerequisite_count === 0 ? 1 : plan.watched_count}
-                    max={plan.total_prerequisite_count || 1} />
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </section>
       {target && (
         <section className="panel" aria-labelledby="watch-order-heading" aria-busy={refreshing}>
@@ -448,7 +477,14 @@ function BookingView() {
   const [requesting, setRequesting] = useState(false);
   const [adding, setAdding] = useState(false);
   const [cinemaError, setCinemaError] = useState("");
+  const [cinemaNotice, setCinemaNotice] = useState("");
+  const cinemaNameInput = useRef(null);
+  const groupSizeInput = useRef(null);
   const cinema = cinemas.find((item) => String(item.id) === cinemaId);
+
+  useEffect(() => {
+    if (cinemaNotice && !adding) groupSizeInput.current?.focus();
+  }, [cinemaNotice, adding]);
 
   function resetQuote() {
     setQuote(null);
@@ -473,6 +509,7 @@ function BookingView() {
     const form = event.currentTarget;
     const fields = new FormData(form);
     const sizes = fields.get("sizes").split(",").map((size) => size.trim());
+    setCinemaNotice("");
     if (sizes.some((size) => !/^\d+$/.test(size))) {
       setCinemaError("Enter bundle sizes as whole numbers separated by commas.");
       return;
@@ -485,6 +522,7 @@ function BookingView() {
       setCinemaId(String(saved.id));
       resetQuote();
       form.reset();
+      setCinemaNotice(`${saved.name} was added and selected for your quote.`);
     } catch (failure) {
       setCinemaError(failure.message);
     } finally {
@@ -493,71 +531,111 @@ function BookingView() {
   }
 
   return (
-    <div className="columns reversed">
-      <section className="panel">
-        <h2>Booking details</h2>
-        <ErrorMessage message={error} retry={retry} />
-        <form className="stack" onSubmit={getQuote}>
-          <fieldset className="stack" disabled={requesting || adding || loading}>
-            <label>Cinema
-              <select value={cinemaId} required onChange={(event) => { setCinemaId(event.target.value); resetQuote(); }}>
-                <option value="">{loading ? "Loading cinemas…" : "Choose a cinema"}</option>
-                {cinemas.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-              </select>
+    <div className="columns booking-layout">
+      <div className="booking-workspace">
+        <section className="panel booking-panel" aria-labelledby="booking-heading">
+          <div className="section-heading">
+            <h2 id="booking-heading">Get a booking quote</h2>
+            <p>Choose a saved cinema and enter the number of seats you need.</p>
+          </div>
+          <ErrorMessage message={error} retry={retry} />
+          {!loading && !error && !cinemas.length ? (
+            <div className="empty booking-empty">
+              <p>No cinemas yet. Create one to set the bundle sizes it sells.</p>
+              <button type="button" className="secondary" onClick={() => cinemaNameInput.current?.focus()}>
+                Add your first cinema
+              </button>
+            </div>
+          ) : (
+            <form className="stack" onSubmit={getQuote}>
+              <fieldset className="stack" disabled={requesting || adding || loading}>
+                <div className="booking-fields">
+                  <label>Saved cinema
+                    <select value={cinemaId} required onChange={(event) => { setCinemaId(event.target.value); resetQuote(); }}>
+                      <option value="">{loading ? "Loading cinemas…" : "Choose a cinema"}</option>
+                      {cinemas.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                    </select>
+                  </label>
+                  <label>Group size
+                    <input ref={groupSizeInput} type="number" min="1" max="10000" required value={groupSize} placeholder="e.g. 6"
+                      onChange={(event) => { setGroupSize(event.target.value); resetQuote(); }} />
+                  </label>
+                </div>
+                {cinema && (
+                  <div className="bundle-options">
+                    <span>Available bundles</span>
+                    <ul aria-label="Available bundle sizes">
+                      {cinema.bundle_sizes.map((size) => <li key={size}>{size} {size === 1 ? "seat" : "seats"}</li>)}
+                    </ul>
+                  </div>
+                )}
+                <button className="primary" disabled={!cinema}>{requesting ? "Calculating…" : "Get quote"}</button>
+              </fieldset>
+            </form>
+          )}
+        </section>
+        <div aria-live="polite">
+          <ErrorMessage message={bookingError} />
+          {requesting && <p className="panel">Calculating quote…</p>}
+          {quote && (quote.possible ? (
+            <section className="panel booking-result" aria-labelledby="bundle-results-heading">
+              <div className="section-heading">
+                <h2 id="bundle-results-heading">Bundles to buy</h2>
+                <p>{cinema?.name} · {groupSize} {Number(groupSize) === 1 ? "seat" : "seats"} · {quote.minimum_bundle_count} {quote.minimum_bundle_count === 1 ? "bundle" : "bundles"} total</p>
+              </div>
+              <ul className="rows">
+                {Object.entries(quote.bundle_quantities).map(([size, quantity]) => (
+                  <li key={size} className="quote-row">
+                    <strong>{size} {Number(size) === 1 ? "seat" : "seats"} per bundle</strong>
+                    <span className="bundle-quantity">Buy {quantity}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : (
+            <section className="panel booking-unavailable">
+              <h2>Not possible</h2>
+              <p>{cinema?.name} can’t seat exactly {groupSize} with its available bundles. Try a different group size or cinema.</p>
+            </section>
+          ))}
+        </div>
+      </div>
+      <section className="panel cinema-panel" aria-labelledby="add-cinema-heading">
+        <div className="section-heading">
+          <h2 id="add-cinema-heading">Add a cinema</h2>
+          <p>Save the cinema and the ticket bundles it offers.</p>
+        </div>
+        <form className="stack" onSubmit={addCinema}>
+          <fieldset className="stack" disabled={adding || requesting || loading}>
+            <label>Cinema name<input ref={cinemaNameInput} name="name" required placeholder="e.g. Central Cinema" /></label>
+            <label>Seats per bundle
+              <input name="sizes" required placeholder="e.g. 1, 3, 4" aria-describedby="bundle-sizes-hint" />
             </label>
-            {cinema && <p className="hint">Bundle sizes: {cinema.bundle_sizes.join(", ")}</p>}
-            {!loading && !error && !cinemas.length && <p className="hint">Add a cinema below to get started.</p>}
-            <label>Group size
-              <input type="number" min="1" max="10000" required value={groupSize} placeholder="6"
-                onChange={(event) => { setGroupSize(event.target.value); resetQuote(); }} />
-            </label>
-            <button className="primary" disabled={!cinema}>{requesting ? "Calculating…" : "Get quote"}</button>
+            <p className="hint bundle-hint" id="bundle-sizes-hint">Enter 1 to 10 different sizes, separated by commas. Each size can be 1 to 500 seats.</p>
+            <button className="primary">{adding ? "Saving…" : "Save cinema"}</button>
           </fieldset>
+          <ErrorMessage message={cinemaError} />
+          {cinemaNotice && <p className="cinema-notice" role="status">{cinemaNotice}</p>}
         </form>
-        <details className="cinema-form">
-          <summary>Add a cinema</summary>
-          <form className="stack" onSubmit={addCinema}>
-            <fieldset className="stack" disabled={adding || requesting || loading}>
-              <label>Name<input name="name" required /></label>
-              <label>Bundle sizes<input name="sizes" required placeholder="1, 3, 4" /></label>
-              <button className="secondary">{adding ? "Saving…" : "Save cinema"}</button>
-            </fieldset>
-            <ErrorMessage message={cinemaError} />
-          </form>
-        </details>
-      </section>
-      <section className="panel" aria-live="polite">
-        <h2>Booking quote</h2>
-        <ErrorMessage message={bookingError} />
-        {requesting && <p className="empty">Calculating quote…</p>}
-        {!quote && !requesting && !bookingError && <p className="empty">Choose a cinema and enter a group size to get a quote.</p>}
-        {quote && (quote.possible ? (
-          <>
-            <p className="progress-summary"><strong>{quote.minimum_bundle_count} {quote.minimum_bundle_count === 1 ? "bundle" : "bundles"} total</strong><span className="muted">{groupSize} seats</span></p>
-            <ul className="rows">
-              {Object.entries(quote.bundle_quantities).map(([size, quantity]) => (
-                <li key={size} className="quote-row"><strong>Bundle of {size}</strong><span>× {quantity}</span></li>
-              ))}
-            </ul>
-          </>
-        ) : <p className="empty"><strong>Not possible.</strong> The available bundles can’t seat exactly {groupSize} people.</p>)}
       </section>
     </div>
   );
 }
 
 export default function App() {
-  const [view, setView] = useState("Movies");
-  const [rewatchTarget, setRewatchTarget] = useState("");
+  const [{ view, target }, setRoute] = useState(readRoute);
   const [pending, setPending] = useState(new Set());
   const [watchError, setWatchError] = useState("");
   const collection = useCollection("/movies");
 
-  function openRewatch(movieId) {
-    setRewatchTarget(String(movieId));
-    setWatchError("");
-    setView("Rewatch Plan");
-  }
+  useEffect(() => {
+    function onNavigate() {
+      setRoute(readRoute());
+      setWatchError("");
+    }
+    window.addEventListener("hashchange", onNavigate);
+    return () => window.removeEventListener("hashchange", onNavigate);
+  }, []);
 
   function saveMovie(movie) {
     collection.setItems((items) => items.some((item) => item.id === movie.id)
@@ -585,21 +663,20 @@ export default function App() {
           <div className="brand"><span className="brand-mark" aria-hidden="true" />Doomsday Ready</div>
           <nav aria-label="Main navigation">
             {views.map((item) => (
-              <button type="button" key={item} aria-current={view === item ? "page" : undefined}
-                onClick={() => { setView(item); setWatchError(""); }}>{item}</button>
+              <a key={item} data-view={viewStyles[item]} aria-current={view === item ? "page" : undefined}
+                href={item === "Rewatch Plan" ? rewatchHref(target) : `#${viewStyles[item]}`}>{item}</a>
             ))}
           </nav>
         </div>
       </header>
-      <main className="shell">
+      <main className="shell" data-view={viewStyles[view]}>
         <div className="intro">
           <h1>{view}</h1>
           <p>{copy[view]}</p>
         </div>
         {view !== "Booking" && <ErrorMessage message={watchError} />}
-        {view === "Movies" && <MoviesView collection={collection} pending={pending} onToggle={toggleWatched} onSave={saveMovie} onPlan={openRewatch} />}
-        {view === "Rewatch Plan" && <RewatchView collection={collection} pending={pending} onToggle={toggleWatched}
-          target={rewatchTarget} setTarget={setRewatchTarget} />}
+        {view === "Movies" && <MoviesView collection={collection} pending={pending} onToggle={toggleWatched} onSave={saveMovie} />}
+        {view === "Rewatch Plan" && <RewatchView collection={collection} pending={pending} onToggle={toggleWatched} target={target} />}
         {view === "Booking" && <BookingView />}
       </main>
     </>
