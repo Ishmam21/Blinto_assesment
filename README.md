@@ -2,7 +2,7 @@
 
 Doomsday Ready is a React and FastAPI app for planning a movie rewatch and finding the fewest cinema ticket bundles that seat a group exactly.
 
-- **Live site** · [Doomsday Ready on Vercel](https://blinto-assesment-e6ku321og-personal-1594.vercel.app/)
+- **Live site** · [Doomsday Ready on Vercel](https://blinto-assesment-murex.vercel.app/)
 - **Hosted API** · [FastAPI on Render](https://blinto-assesment.onrender.com/) · [Swagger UI](https://blinto-assesment.onrender.com/docs)
 
 ## Algorithms
@@ -133,4 +133,4 @@ Submit the Git repository link through the Google Form that delivered the challe
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. [TMDB attribution requirements](https://developer.themoviedb.org/docs/faq#what-are-the-attribution-requirements)
 
-AI assistance helped refine the frontend and prepare the documentation.
+AI assistance helped refine parts of the project, prepare the documentation and create the docker compose file.
