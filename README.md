@@ -133,4 +133,4 @@ Submit the Git repository link through the Google Form that delivered the challe
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. [TMDB attribution requirements](https://developer.themoviedb.org/docs/faq#what-are-the-attribution-requirements)
 
-AI assistance helped refine the frontend and prepare the documentation.
+AI assistance helped refine parts of the project, prepare the documentation and create the docker compose file.
