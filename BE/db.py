@@ -7,7 +7,7 @@ load_dotenv()
 
 database_url = os.environ["DATABASE_URL"]
 database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
-engine = create_engine(database_url)
+engine = create_engine(database_url, pool_pre_ping=True)
 
 if __name__ == "__main__":
     with engine.connect() as connection:
