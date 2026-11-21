@@ -17,6 +17,25 @@ The app rejects self-links. DFS detects cycles by tracking the movies on its cur
 
 The rewatch algorithm is in [`BE/movie_graph.py`](BE/movie_graph.py).
 
+**Simplified algorithm**
+
+```text
+Run DFS from the target to collect its prerequisites.
+    If a movie is already on the current path, report a cycle.
+    If it is already finished, skip it.
+    Otherwise, visit its prerequisites before marking it finished.
+
+Exclude the target from the result.
+While prerequisites remain:
+    Gather every movie whose prerequisites were finished in earlier rounds.
+    Sort that round by release date or year.
+    Append the entire round to the watch order.
+```
+
+![Movie library with posters and the prerequisite editor open for The Avengers](docs/screenshots/movies.png)
+
+![Rewatch plan for Avengers: Infinity War showing the numbered watch order, watched progress, and remaining minutes](docs/screenshots/rewatch-plan.png)
+
 ### Feature 2 — Exact cinema booking
 
 The booking algorithm solves a minimum coin change problem with dynamic programming. Bundle sizes are the coin values, and the group size is the target. Starting at zero seats, the algorithm works up to the target. For each seat total, it tries every bundle size that fits, looks up the minimum count for the remaining seats, and adds one for the bundle it just tried. It keeps the lowest count among the choices that fill the remainder exactly. If the target is unreachable, the quote reports that booking is impossible.
@@ -24,6 +43,22 @@ The booking algorithm solves a minimum coin change problem with dynamic programm
 For each reachable total, the algorithm also records the bundle size that gave the lowest count. It starts at the group size, subtracts each recorded bundle, and counts how many of each size to buy.
 
 The booking algorithm is in [`BE/booking.py`](BE/booking.py).
+
+**Simplified algorithm**
+
+```text
+Set best[0] to 0 bundles and mark every other seat total unreachable.
+For each seat total from 1 to the group size:
+    For each bundle size that fits:
+        If the remaining seats are reachable, try 1 + best[remaining seats].
+        If this improves best[seat total], save the count and bundle size.
+
+If the group size is unreachable, return "Not possible".
+Otherwise, work backward from the group size using the saved bundle sizes.
+Count how many bundles of each size to buy.
+```
+
+![Booking quote for 44 seats showing one bundle of 6, two bundles of 9, and one bundle of 20](docs/screenshots/booking.png)
 
 ## Run with Docker Compose
 
