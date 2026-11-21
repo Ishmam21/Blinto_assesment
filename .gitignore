@@ -3,8 +3,8 @@
 .env.*
 !.env.example
 
-# Neon setup notes (local reference)
-/neon-setup-notes.md
+# Local setup notes
+/*-setup-notes.md
 
 # Local README files
 [Rr][Ee][Aa][Dd][Mm][Ee]

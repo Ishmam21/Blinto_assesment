@@ -18,11 +18,9 @@ services:
     build:
       context: .
       dockerfile: BE/Dockerfile
-    env_file:
-      - path: BE/.env
-        required: false
     environment:
-      DATABASE_URL: "${DATABASE_URL:-postgresql://doomsday:doomsday_local@db:5432/doomsday}"
+      DATABASE_URL: "postgresql://doomsday:doomsday_local@db:5432/doomsday"
+      TMDB_READ_TOKEN: "${TMDB_READ_TOKEN:-}"
     depends_on:
       db:
         condition: service_healthy

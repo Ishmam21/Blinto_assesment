@@ -1,11 +1,8 @@
 import os
 
-from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
-load_dotenv()
-
-database_url = os.environ["DATABASE_URL"]
+database_url = os.getenv("DATABASE_URL") or "postgresql://doomsday:doomsday_local@127.0.0.1:5432/doomsday"
 database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
 engine = create_engine(database_url, pool_pre_ping=True)
 
@@ -14,4 +11,4 @@ if __name__ == "__main__":
         movie_count = connection.execute(
             text("SELECT COUNT(*) FROM movies")
         ).scalar_one()
-        print(f"Connected to Neon. Movies in database: {movie_count}")
+        print(f"Connected to PostgreSQL. Movies in database: {movie_count}")

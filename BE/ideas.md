@@ -19,7 +19,7 @@ Example: Civil War requires The Avengers. For Infinity War, selecting Civil War 
 
 ## Database design
 
-- Use one Neon PostgreSQL database. For the movie feature, use `movies` and a `movie_prerequisites` join table. Each uses a regular single-column `id` primary key.
+- Use the local PostgreSQL database provided by Docker Compose. The movie feature uses `movies` and a `movie_prerequisites` join table. Each uses a regular single-column `id` primary key.
 - Each prerequisite row stores `movie_id` and `prerequisite_id`. Both reference `movies.id`. Use FastAPI to deduplicate identical IDs in a submitted list. The join table uses neither a composite primary key nor a combined unique constraint.
 - Store cinemas and their bundle sizes in `cinemas`. The booking feature calculates a quote.
 
